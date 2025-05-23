@@ -1,0 +1,18 @@
+name = "TimeUnits"
+uuid = "06db76f2-042d-446b-9347-171e0bf2444a"
+authors = ["WooKyoung Noh <wookay.noh@gmail.com>"]
+version = "0.1.0"
+
+[compat]
+julia = "1.6"
+Jive = "0.3"
+Unitful = "1.22"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+Jive = "ba5e3d4b-8524-549f-bc71-e76ad9e9deed"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+
+[targets]
+test = ["Test", "Jive", "Dates", "Unitful"]
