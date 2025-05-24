@@ -7,7 +7,7 @@ using .Unitful: s, ms, μs, ns, ps, fs
 # original code from julia/base/intfuncs.jl
 # function _base(base::Integer, x::Integer, pad::Int, neg::Bool)
 function base_thousand(x::Integer, neg::Bool)
-    b = neg ? -1000 : 1000
+    b = 1000
     (x >= 0) | (b < 0) || throw(DomainError(x, "For negative `x`, `base` must be negative."))
     pad = 0
     n = neg + ndigits(x, base=b, pad=pad)
@@ -16,13 +16,12 @@ function base_thousand(x::Integer, neg::Bool)
     @inbounds while i > neg
         if b > 0
             num = (rem(x, b) % Int)::Int
-            pushfirst!(unit_nums, (i, num))
             x = div(x, b)
         else
             num = (mod(x, -b) % Int)::Int
-            pushfirst!(unit_nums, (i, num))
             x = cld(x, b)
         end
+        pushfirst!(unit_nums, (i, neg ? -num : num))
         i -= 1
     end
     unit_nums
@@ -33,9 +32,9 @@ const fractional_si_units = (ms, μs, ns, ps, fs)
 function canonical_fractional_part(x::Int)::Vector{Quantity{Int}}
     neg = signbit(x)
     periods = Vector{Quantity{Int}}()
-    for (i, num) in base_thousand(x, neg)
-        unit = fractional_si_units[i]
-        push!(periods, num * unit)
+    for (i, num) in base_thousand(neg ? -x : x, neg)
+        unit = fractional_si_units[i - neg]
+        push!(periods, (num)unit)
     end
     periods
 end
@@ -50,7 +49,9 @@ function canonical_floating_parts(val::Float64)::Vector{Quantity{Int}}
     fractional = val - integral
     x = round(Int, fractional * ^(10, p))
     periods = Vector{Quantity{Int}}()
-    if integral >= 0
+    if !neg && integral >= 0
+        push!(periods, (integral)s)
+    elseif neg && integral < 0
         push!(periods, (integral)s)
     end
     if !iszero(x)
