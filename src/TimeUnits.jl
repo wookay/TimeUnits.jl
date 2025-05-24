@@ -1,5 +1,6 @@
 module TimeUnits
 
-greet() = print("Hello World!")
+export Compound
+include("unitful.jl")
 
 end # module TimeUnits
