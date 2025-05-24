@@ -7,7 +7,7 @@ using .Unitful: s, ms, μs, ns, ps, fs
 # original code from julia/base/intfuncs.jl
 # function _base(base::Integer, x::Integer, pad::Int, neg::Bool)
 function base_thousand(x::Integer, neg::Bool)
-    b = 1000
+    b = neg ? -1000 : 1000
     (x >= 0) | (b < 0) || throw(DomainError(x, "For negative `x`, `base` must be negative."))
     pad = 0
     n = neg + ndigits(x, base=b, pad=pad)
@@ -24,9 +24,6 @@ function base_thousand(x::Integer, neg::Bool)
             x = cld(x, b)
         end
         i -= 1
-    end
-    if neg
-        @info :neg neg
     end
     unit_nums
 end
