@@ -27,13 +27,13 @@ function base_thousand(x::Integer, neg::Bool)
     unit_nums
 end
 
-const fractional_si_units = (ms, μs, ns, ps, fs)
+const fractional_si_units = (s, ms, μs, ns, ps, fs)
 
 function canonical_fractional_part(x::Int)::Vector{Quantity{Int}}
     neg = signbit(x)
     periods = Vector{Quantity{Int}}()
     for (i, num) in base_thousand(neg ? -x : x, neg)
-        unit = fractional_si_units[i - neg]
+        unit = fractional_si_units[1 + i - neg]
         push!(periods, (num)unit)
     end
     periods
@@ -65,15 +65,6 @@ function canonical_floating_parts(r::Rational{Int})::Vector{Quantity{Int}}
     canonical_floating_parts(Float64(r))
 end
 
-function canonical_floating_parts(q::Quantity{Float64})::Vector{Quantity{Int}}
-    u = unit(q)
-    if u === s
-        canonical_floating_parts(q.val)
-    else
-        canonical_floating_parts(s(q).val)
-    end
-end
-
 struct Compound{T}
     periods::Vector{Quantity{T}}
     function Compound(q::Quantity{Float64})
@@ -93,6 +84,28 @@ struct Compound{T}
     end
     function Compound{T}(periods::Vector{Quantity{T}}) where T
         new{T}(periods)
+    end
+end
+
+function shift_down(compound::Vector{Quantity{Int}}, down::Int)::Vector{Quantity{Int}}
+    periods = Vector{Quantity{Int}}()
+    for q in compound
+        u = unit(q)
+        unit_index = findfirst(x -> x === u, fractional_si_units)
+        down_u = fractional_si_units[unit_index + down]
+        push!(periods, (q.val)down_u)
+    end
+    return periods
+end
+
+function canonical_floating_parts(q::Quantity{Float64})::Vector{Quantity{Int}}
+    u = unit(q)
+    if u === s
+        canonical_floating_parts(q.val)
+    else
+        unit_index = findfirst(x -> x === u, fractional_si_units)
+        periods = canonical_floating_parts(q.val)
+        shift_down(periods, unit_index - 1)
     end
 end
 

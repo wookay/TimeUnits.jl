@@ -17,4 +17,6 @@ using Unitful: minute, s, ms, μs, ns, ps, fs, as
 @test Compound(1minute, 3s).periods    == [63s] 
 @test Compound(63.141s)                == Compound(1minute, 3s, 141ms)
 
+@test Compound(141.592ms).periods      == [141ms, 592μs]
+
 end # module test_timeunits_Compound
