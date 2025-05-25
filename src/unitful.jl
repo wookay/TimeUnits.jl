@@ -2,7 +2,9 @@
 
 using Unitful: Unitful
 using .Unitful: Quantity, unit
-using .Unitful: s, ms, μs, ns, ps, fs
+using .Unitful: s, ms, μs, ns, ps, fs, as
+
+const fractional_si_units = (s, ms, μs, ns, ps, fs, as)
 
 # original code from julia/base/intfuncs.jl
 # function _base(base::Integer, x::Integer, pad::Int, neg::Bool)
@@ -26,8 +28,6 @@ function base_thousand(x::Integer, neg::Bool)
     end
     unit_nums
 end
-
-const fractional_si_units = (s, ms, μs, ns, ps, fs)
 
 function canonical_fractional_part(x::Int)::Vector{Quantity{Int}}
     neg = signbit(x)
