@@ -49,7 +49,7 @@ function canonical_floating_parts(val::Float64)::Vector{Quantity{Int}}
     fractional = val - integral
     x = round(Int, fractional * ^(10, p))
     periods = Vector{Quantity{Int}}()
-    if !neg && integral >= 0
+    if !neg && integral > 0
         push!(periods, (integral)s)
     elseif neg && integral < 0
         push!(periods, (integral)s)
@@ -69,17 +69,25 @@ struct Compound{T}
     periods::Vector{Quantity{T}}
     function Compound(q::Quantity{Float64})
         periods = canonical_floating_parts(q)
-        new{Int}(periods)
+        if isempty(periods)
+            new{Int}([0s])
+        else
+            new{Int}(periods)
+        end
     end
     function Compound(qs::Quantity{Int}...)
-        val = sum(q -> s(q).val, qs)
-        if iszero(val)
-            new{Int}([0s])
-        elseif val isa Int
-            new{Int}([(val)s])
+        if isempty(qs)
+            new{Int}([])
         else
-            periods = canonical_floating_parts(val)
-            new{Int}(periods)
+            val = sum(q -> s(q).val, qs)
+            if iszero(val)
+                new{Int}([0s])
+            elseif val isa Int
+                new{Int}([(val)s])
+            else
+                periods = canonical_floating_parts(val)
+                new{Int}(periods)
+            end
         end
     end
     function Compound{T}(periods::Vector{Quantity{T}}) where T
