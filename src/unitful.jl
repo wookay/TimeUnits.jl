@@ -79,14 +79,16 @@ struct Compound{T}
         if isempty(qs)
             new{Int}([])
         else
-            val = sum(q -> s(q).val, qs)
-            if iszero(val)
-                new{Int}([0s])
-            elseif val isa Int
-                new{Int}([(val)s])
+            if any(q -> unit(q) === as, qs)
+                new{Int}(collect(qs))
             else
-                periods = canonical_floating_parts(val)
-                new{Int}(periods)
+                val = sum(q -> s(q).val, qs)
+                if val isa Int
+                    new{Int}([(val)s])
+                else
+                    periods = canonical_floating_parts(val)
+                    new{Int}(periods)
+                end
             end
         end
     end

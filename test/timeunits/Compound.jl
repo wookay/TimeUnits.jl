@@ -14,12 +14,16 @@ using Unitful: minute, s, ms, μs, ns, ps, fs, as
 @test Compound(60s)                    == Compound(1minute)
 @test Compound(63s)                    == Compound(1minute, 3s)
 @test Compound(63s).periods            == [63s]
-@test Compound(1minute, 3s).periods    == [63s] 
+@test Compound(1minute, 3s).periods    == [63s]
 @test Compound(63.141s)                == Compound(1minute, 3s, 141ms)
 
 @test Compound(141.592ms)              == Compound(141ms, 592μs)
 @test Compound(141.592ms).periods      == [141ms, 592μs]
 
 @test Compound()                       == Compound()
+
+# special for as
+@test Compound(0as)                                      == Compound(0as)
+@test Compound(620ms, 004μs, 545ns, 454ps, 545fs, 455as) == Compound(620ms, 004μs, 545ns, 454ps, 545fs, 455as)
 
 end # module test_timeunits_Compound
