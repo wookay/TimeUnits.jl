@@ -6,6 +6,7 @@ using .Unitful: d, hr, minute, s, ms, μs, ns, ps, fs, as
 
 const fractional_si_units = (s, ms, μs, ns, ps, fs, as)
 
+unit_base(::Any)            = nothing
 unit_base(::typeof(hr))     = 24
 unit_base(::typeof(minute)) = 60
 unit_base(::typeof(s))      = 60
@@ -16,6 +17,7 @@ unit_base(::typeof(ps))     = 1000
 unit_base(::typeof(fs))     = 1000
 unit_base(::typeof(as))     = 1000
 
+parent_unit(::Any)            = nothing
 parent_unit(::typeof(hr))     = d
 parent_unit(::typeof(minute)) = hr
 parent_unit(::typeof(s))      = minute
@@ -25,6 +27,17 @@ parent_unit(::typeof(ns))     = μs
 parent_unit(::typeof(ps))     = ns
 parent_unit(::typeof(fs))     = ps
 parent_unit(::typeof(as))     = fs
+
+child_unit(::Any)            = nothing
+child_unit(::typeof(d))      = hr
+child_unit(::typeof(hr))     = minute
+child_unit(::typeof(minute)) = s
+child_unit(::typeof(s))      = ms
+child_unit(::typeof(ms))     = μs
+child_unit(::typeof(μs))     = ns
+child_unit(::typeof(ns))     = ps
+child_unit(::typeof(ps))     = fs
+child_unit(::typeof(fs))     = as
 
 # original code from julia/base/intfuncs.jl
 # function _base(base::Integer, x::Integer, pad::Int, neg::Bool)
@@ -74,15 +87,16 @@ function canonical_compound_periods(compound_periods::Vector{Quantity{Int}})::Ve
         iszero(x) && continue
         U = unit(q)
         P = parent_unit(U)
-        base = unit_base(U)
-        if x >= base
-            quotient  = div(x, base)
-            remainder = rem(x, base)
+        base_u = unit_base(U)
+        if base_u !== nothing && x >= base_u
+            quotient  = div(x, base_u)
+            remainder = rem(x, base_u)
             push!(periods, (quotient)P)
             if !iszero(remainder)
                 push!(periods, (remainder)U)
             end
-            if quotient >= unit_base(P)
+            base_p = unit_base(P)
+            if base_p !== nothing && quotient >= base_p
                 one_more_time = true
             end
         else
@@ -103,7 +117,7 @@ function canonical_floating_parts(val::Float64, U::FreeUnits)::Vector{Quantity{I
     str = string(val)
     p = length(str) - n - 1
     fractional = val - integral
-    x = round(Int, fractional * ^(10, p))
+    x = round(Int, Float64(fractional) * ^(10, p))
     compound_periods = Vector{Quantity{Int}}()
     if !neg && integral > 0
         push!(compound_periods, (integral)U)
@@ -111,9 +125,17 @@ function canonical_floating_parts(val::Float64, U::FreeUnits)::Vector{Quantity{I
         push!(compound_periods, (integral)U)
     end
     if !iszero(x)
-        distance = ndigits(U(1s).val, base=1000) - 1
-        part = canonical_fractional_part(x, distance)
-        append!(compound_periods, part)
+        if U in fractional_si_units
+            distance = ndigits(U(1s).val, base=1000) - 1
+            part = canonical_fractional_part(x, distance)
+            append!(compound_periods, part)
+        else
+            C = child_unit(U)
+            base_c = unit_base(C)
+            q = (fractional * base_c)C
+            val_c = round(Int, q.val)
+            push!(compound_periods, (val_c)C)
+        end
     end
     canonical_compound_periods(compound_periods)
 end

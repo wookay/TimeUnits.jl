@@ -2,7 +2,7 @@ module test_timeunits_Compound
 
 using Test
 using TimeUnits # Compound
-using Unitful: minute, s, ms, μs, ns, ps, fs, as
+using Unitful: d, hr, minute, s, ms, μs, ns, ps, fs, as
 
 using TimeUnits: base_thousand, canonical_fractional_part, canonical_floating_parts
 
@@ -48,5 +48,13 @@ using TimeUnits: base_thousand, canonical_fractional_part, canonical_floating_pa
 @test Compound(620ms, 004μs, 545ns, 454ps, 545fs, 455as) == Compound(620ms, 004μs, 545ns, 454ps, 545fs, 455as)
 @test Compound(226_279.545_454_545_47ms)                 == Compound(3minute, 46s, 279ms, 545μs, 454ns, 545ps, 470fs)
 @test Compound(620.454_545_454_545_5ms) == Compound(620ms, 454μs, 545ns, 454ps, 545fs, 500as)
+
+@test Compound(24hr)                    == Compound(1d)
+@test Compound(60minute)                == Compound(1hr)
+
+@test Compound(0.5hr)                   == Compound(30minute)
+@test Compound(23.5hr)                  == Compound(23hr, 30minute)
+@test Compound(23.1hr)                  == Compound(23hr, 6minute)
+@test Compound(23.2hr)                  == Compound(23hr, 12minute)
 
 end # module test_timeunits_Compound
